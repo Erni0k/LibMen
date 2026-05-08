@@ -1,0 +1,20 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+  <h1>Books</h1>
+  {% if books %}
+    <div>
+      {% for book in books %}
+        <div class="book">
+          <div><strong>{{ book.title }}</strong></div>
+          <div class="meta">Author: {{ book.author }} — Category: {{ book.category }} — ISBN: {{ book.isbn }}</div>
+          {% if book.description %}
+            <p>{{ book.description }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No books found.</p>
+  {% endif %}
+{% endblock %}
