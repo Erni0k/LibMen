@@ -1,8 +1,17 @@
-from django.db import models
+from decimal import Decimal
+
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+
+class UserRole(models.TextChoices):
+    ADMIN = 'admin', 'Admin'
+    WORKER = 'staff', 'Staff'
+    USER = 'user', 'User'
+
 
 class User(AbstractUser):
-    role = models.CharField(max_length=50, default='czytelnik')
+    role = models.CharField(max_length=50, choices=UserRole.choices, default=UserRole.USER)
     date_joined = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -51,7 +60,7 @@ class BookCopy(models.Model):
     acquisition_date = models.DateField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.book.title} - {self.id}"
+        return f"{self.book.title} - {self.pk}"
 
 class Loan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='loans')
@@ -59,11 +68,17 @@ class Loan(models.Model):
     loan_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     return_date = models.DateTimeField(null=True, blank=True)
-    fine_amount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    fine_amount = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'))
     is_returned = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.user.username} - {self.book_copy}"
+
+    class Meta:
+        permissions = [
+            ('borrow_book', 'Can borrow book'),
+            ('return_book', 'Can return book'),
+        ]
 
 class Reservation(models.Model):
     STATUS_CHOICES = [
@@ -82,6 +97,12 @@ class Reservation(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.book.title}"
 
+    class Meta:
+        permissions = [
+            ('reserve_book', 'Can reserve book'),
+            ('cancel_reservation', 'Can cancel reservation'),
+        ]
+
 class Fine(models.Model):
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='fines')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fines')
@@ -92,3 +113,8 @@ class Fine(models.Model):
     
     def __str__(self):
         return f"Fine for {self.user.username}: {self.amount} PLN"
+
+    class Meta:
+        permissions = [
+            ('pay_fine', 'Can pay fine'),
+        ]
