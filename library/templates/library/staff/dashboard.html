@@ -1,0 +1,153 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Panel Pracownika{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1>👨‍💼 Panel Pracownika</h1>
+      <p class="text-muted">Zarządzaj biblioteką i śledź statystyki</p>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <h6 class="card-title">Wszystkie książki</h6>
+          <h2>{{ stats.total_books }}</h2>
+          <small>{{ stats.total_copies }} kopii</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h6 class="card-title">Dostępne</h6>
+          <h2>{{ stats.available_copies }}</h2>
+          <small>{% widthratio stats.available_copies stats.total_copies 100 %}%</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-white">
+        <div class="card-body">
+          <h6 class="card-title">Wypożyczone</h6>
+          <h2>{{ stats.borrowed_copies }}</h2>
+          <small>{{ stats.active_loans }} pożyczek</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <h6 class="card-title">Zaległe</h6>
+          <h2>{{ stats.overdue_loans }}</h2>
+          <small>Wymaga akcji</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <h6 class="card-title">Rezerwacje</h6>
+          <h2>{{ stats.active_reservations }}</h2>
+          <small>Aktywne</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <h6 class="card-title">Niezapłacone kary</h6>
+          <h2>{{ stats.unpaid_fines }}</h2>
+          <small>{{ stats.total_unpaid_fines }} PLN</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Szybkie akcje</h5>
+        </div>
+        <div class="card-body">
+          <div class="btn-group" role="group">
+            <a href="{% url 'library:staff_loans' %}" class="btn btn-primary">📖 Zarządzaj pożyczkami</a>
+            <a href="{% url 'library:staff_reservations' %}" class="btn btn-info">📌 Rezerwacje</a>
+            <a href="{% url 'library:staff_manage_books' %}" class="btn btn-success">📚 Zarządzaj Książkami</a>
+            <a href="{% url 'library:staff_fines' %}" class="btn btn-warning">💰 Kary</a>
+            <a href="{% url 'library:staff_users' %}" class="btn btn-secondary">👥 Użytkownicy</a>
+            {% if request.user.role == 'admin' %}
+              <a href="{% url 'library:admin_users' %}" class="btn btn-danger">👑 Zarządzaj Użytkownikami</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overdue Loans -->
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0">⚠️ Zaległe Pożyczki ({{ overdue_loans|length }})</h5>
+        </div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+          {% if overdue_loans %}
+            <div class="list-group">
+              {% for loan in overdue_loans %}
+                <div class="list-group-item">
+                  <h6 class="mb-1">{{ loan.book_copy.book.title }}</h6>
+                  <p class="mb-1 text-muted">{{ loan.user.get_full_name|default:loan.user.username }}</p>
+                  <small class="text-danger">Termin: {{ loan.due_date|date:"d.m.Y" }}</small>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted">✓ Brak zaległych pożyczek</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">📖 Ostatnie Pożyczki</h5>
+        </div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+          <div class="list-group">
+            {% for loan in recent_loans %}
+              <div class="list-group-item">
+                <h6 class="mb-1">{{ loan.book_copy.book.title }}</h6>
+                <p class="mb-1 text-muted">{{ loan.user.get_full_name|default:loan.user.username }}</p>
+                <small class="text-{{ loan.is_returned|yesno:'success,warning' }}">
+                  {% if loan.is_returned %}
+                    ✓ Zwrócona
+                  {% else %}
+                    Termin: {{ loan.due_date|date:"d.m.Y" }}
+                  {% endif %}
+                </small>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:book_list' %}" class="btn btn-secondary">← Powrót do biblioteki</a>
+  </div>
+</div>
+{% endblock %}

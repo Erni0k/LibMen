@@ -1,0 +1,101 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Moje Kary{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-8">
+      <h1>💰 Moje Kary</h1>
+
+      <!-- Unpaid Fines -->
+      <div class="card mt-4">
+        <div class="card-header bg-danger text-white">
+          <h3 class="mb-0">Niezapłacone Kary</h3>
+        </div>
+        <div class="card-body">
+          {% if unpaid_fines %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Książka</th>
+                    <th>Data wydania</th>
+                    <th>Kwota</th>
+                    <th>Akcja</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for fine in unpaid_fines %}
+                    <tr>
+                      <td>{{ fine.loan.book_copy.book.title }}</td>
+                      <td>{{ fine.issued_date|date:"d.m.Y" }}</td>
+                      <td><strong>{{ fine.amount }} PLN</strong></td>
+                      <td>
+                        <a href="{% url 'library:pay_fine' fine.id %}" class="btn btn-sm btn-success">Zapłać</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-success">✓ Brak niezapłaconych kar</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Paid Fines -->
+      <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+          <h3 class="mb-0">Zapłacone Kary</h3>
+        </div>
+        <div class="card-body">
+          {% if paid_fines %}
+            <div class="table-responsive">
+              <table class="table table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>Książka</th>
+                    <th>Kwota</th>
+                    <th>Data zapłaty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for fine in paid_fines %}
+                    <tr>
+                      <td>{{ fine.loan.book_copy.book.title }}</td>
+                      <td>{{ fine.amount }} PLN</td>
+                      <td>{{ fine.paid_date|date:"d.m.Y" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted">Brak zapłaconych kar</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Razem do zapłaty</h5>
+          <h2 class="text-danger">{{ total_unpaid }} PLN</h2>
+          {% if total_unpaid > 0 %}
+            <p class="text-muted">Masz {{ unpaid_fines|length }} niezapłaconych kar</p>
+          {% else %}
+            <p class="text-success">✓ Jesteś na bieżąco z opłatami</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:book_list' %}" class="btn btn-primary">Powrót do listy książek</a>
+  </div>
+</div>
+{% endblock %}

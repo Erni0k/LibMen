@@ -1,0 +1,70 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Zarządzaj Użytkownikami{% endblock %}
+
+{% block content %}
+<style>
+  .staff-users-table td.role-cell .badge,
+  .staff-users-table td.fines-cell .badge {
+    color: #000 !important;
+  }
+</style>
+<div class="container-fluid mt-5">
+  <h1>👥 Zarządzaj Użytkownikami</h1>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      {% if users %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover staff-users-table">
+            <thead class="table-dark">
+              <tr>
+                <th>Użytkownik</th>
+                <th>Email</th>
+                <th>Rola</th>
+                <th>Wszystkich pożyczek</th>
+                <th>Aktywnych pożyczek</th>
+                <th>Niezapłaconych kar</th>
+                <th>Dołączył</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+                <tr>
+                  <td>{{ user.get_full_name|default:user.username }}</td>
+                  <td>{{ user.email }}</td>
+                  <td class="role-cell">
+                    {% if user.role == 'admin' %}
+                      <span class="badge badge-danger">Admin</span>
+                    {% elif user.role == 'staff' %}
+                      <span class="badge badge-warning">Pracownik</span>
+                    {% else %}
+                      <span class="badge badge-info">Użytkownik</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ user.total_loans }}</td>
+                  <td>{{ user.active_loans }}</td>
+                  <td class="fines-cell">
+                    {% if user.unpaid_fines > 0 %}
+                      <span class="badge badge-danger">{{ user.unpaid_fines }}</span>
+                    {% else %}
+                      <span class="badge badge-success">0</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Brak użytkowników</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:staff_dashboard' %}" class="btn btn-secondary">← Powrót do panelu</a>
+  </div>
+</div>
+{% endblock %}

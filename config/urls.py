@@ -16,8 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from library import views as library_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('library.urls')),
 ]
+
+# Error handlers
+handler404 = library_views.handler404
+handler403 = library_views.handler403

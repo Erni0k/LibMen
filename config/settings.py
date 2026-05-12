@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'library.middleware.ErrorPageMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -125,4 +126,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
  
 # Where to redirect after logout
-LOGOUT_REDIRECT_URL = '/' 
+LOGOUT_REDIRECT_URL = '/'
+
+# Where to redirect after login
+LOGIN_REDIRECT_URL = 'library:book_list'

@@ -1,0 +1,107 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Moje Rezerwacje{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1>📌 Moje Rezerwacje</h1>
+
+  <!-- Active Reservations -->
+  <div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">Aktywne Rezerwacje</h3>
+    </div>
+    <div class="card-body">
+      {% if active_reservations %}
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Tytuł</th>
+                <th>Autor</th>
+                <th>Data rezerwacji</th>
+                <th>Ważna do</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reservation in active_reservations %}
+                <tr>
+                  <td>{{ reservation.book.title }}</td>
+                  <td>{{ reservation.book.author }}</td>
+                  <td>{{ reservation.reservation_date|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if reservation.expiry_date|date:"Y-m-d" <= "now"|date:"Y-m-d" %}
+                      <span class="badge badge-danger">WYGASŁA: {{ reservation.expiry_date|date:"d.m.Y" }}</span>
+                    {% else %}
+                      {{ reservation.expiry_date|date:"d.m.Y" }}
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'library:book_detail' reservation.book.id %}" class="btn btn-sm btn-info">Szczegóły</a>
+                    <form method="post" action="{% url 'library:cancel_reservation' reservation.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-danger" type="submit">Anuluj</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Brak aktywnych rezerwacji</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Past Reservations -->
+  <div class="card mt-4">
+    <div class="card-header bg-secondary text-white">
+      <h3 class="mb-0">Historia Rezerwacji</h3>
+    </div>
+    <div class="card-body">
+      {% if past_reservations %}
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>Tytuł</th>
+                <th>Status</th>
+                <th>Data rezerwacji</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reservation in past_reservations %}
+                <tr>
+                  <td>{{ reservation.book.title }}</td>
+                  <td>
+                    {% if reservation.status == 'active' %}
+                      <span class="badge badge-primary">Aktywna</span>
+                    {% elif reservation.status == 'fulfilled' %}
+                      <span class="badge badge-success">Zrealizowana</span>
+                    {% elif reservation.status == 'cancelled' %}
+                      <span class="badge badge-secondary">Anulowana</span>
+                    {% elif reservation.status == 'expired' %}
+                      <span class="badge badge-danger">Wygasła</span>
+                    {% else %}
+                      <span class="badge badge-secondary">{{ reservation.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ reservation.reservation_date|date:"d.m.Y" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Brak historii rezerwacji</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:book_list' %}" class="btn btn-primary">Powrót do listy książek</a>
+  </div>
+</div>
+{% endblock %}

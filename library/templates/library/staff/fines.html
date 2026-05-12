@@ -1,0 +1,88 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Zarządzaj Karami{% endblock %}
+
+{% block content %}
+<style>
+  .staff-fines-table td.status-cell .badge {
+    color: #fff !important;
+  }
+
+  .staff-fines-table td.status-cell .badge.badge-danger {
+    background-color: #dc3545 !important;
+  }
+
+  .staff-fines-table td.status-cell .badge.badge-success {
+    background-color: #198754 !important;
+  }
+</style>
+<div class="container-fluid mt-5">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1>💰 Zarządzaj Karami</h1>
+      
+      <div class="btn-group mb-3" role="group">
+        <a href="?filter=unpaid" class="btn btn-{% if filter == 'unpaid' %}danger{% else %}outline-danger{% endif %}">Niezapłacone</a>
+        <a href="?filter=paid" class="btn btn-{% if filter == 'paid' %}success{% else %}outline-success{% endif %}">Zapłacone</a>
+        <a href="?filter=all" class="btn btn-{% if filter == 'all' %}primary{% else %}outline-primary{% endif %}">Wszystkie</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">
+        Razem: <strong>{{ total }} PLN</strong>
+      </h5>
+    </div>
+    <div class="card-body">
+      {% if fines %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover staff-fines-table">
+            <thead class="table-dark">
+              <tr>
+                <th>Użytkownik</th>
+                <th>Książka</th>
+                <th>Kwota</th>
+                <th>Status</th>
+                <th>Data wydania</th>
+                <th>Data zapłaty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fine in fines %}
+                <tr>
+                  <td>{{ fine.user.get_full_name|default:fine.user.username }}</td>
+                  <td>{{ fine.loan.book_copy.book.title }}</td>
+                  <td><strong>{{ fine.amount }} PLN</strong></td>
+                  <td class="status-cell">
+                    {% if fine.is_paid %}
+                      <span class="badge badge-success">Zapłacona</span>
+                    {% else %}
+                      <span class="badge badge-danger">Niezapłacona</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ fine.issued_date|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if fine.paid_date %}
+                      {{ fine.paid_date|date:"d.m.Y" }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Brak kar do wyświetlenia</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:staff_dashboard' %}" class="btn btn-secondary">← Powrót do panelu</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'library/base.html' %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-4">
+      {% if book.cover_image_url %}
+        <img src="{{ book.cover_image_url }}" class="img-fluid rounded mb-4" alt="{{ book.title }}" style="max-height: 400px; object-fit: cover;">
+      {% else %}
+        <div class="bg-light rounded mb-4 d-flex align-items-center justify-content-center" style="height: 400px;">
+          <span class="text-muted">Brak okładki</span>
+        </div>
+      {% endif %}
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="card-title">Liczba kopii</h6>
+          <p class="card-text">
+            <strong>Dostępnych:</strong> <span class="badge badge-success">{{ available_copies }}</span><br>
+            <strong>Wszystkich:</strong> <span class="badge badge-info">{{ total_copies }}</span><br>
+            <strong>Zarezerwowanych:</strong> <span class="badge badge-warning">{{ active_reservations }}</span>
+          </p>
+        </div>
+      </div>
+
+      {% if user.is_authenticated %}
+        <div class="btn-group-vertical w-100" role="group">
+          {% if available_copies > 0 %}
+            <a href="{% url 'library:borrow_book' book.id %}" class="btn btn-success btn-lg mb-2">
+              📖 Wypożycz
+            </a>
+          {% else %}
+            <button class="btn btn-secondary btn-lg mb-2" disabled>
+              Niedostępna
+            </button>
+          {% endif %}
+          
+          {% if not user_reservation %}
+            <a href="{% url 'library:reserve_book' book.id %}" class="btn btn-outline-primary btn-lg">
+              📌 Zarezerwuj
+            </a>
+          {% else %}
+            <button class="btn btn-outline-secondary btn-lg" disabled>
+              ✓ Zarezerwowana
+            </button>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="text-center text-muted mt-3">
+          <a href="{% url 'library:login' %}" class="btn btn-primary btn-lg w-100">Zaloguj się, aby wypożyczyć</a>
+        </p>
+      {% endif %}
+    </div>
+
+    <div class="col-md-8">
+      <h1>{{ book.title }}</h1>
+      
+      <div class="mb-4">
+        <p><strong>Autor:</strong> <a href="?author={{ book.author.first_name }}">{{ book.author.first_name }} {{ book.author.last_name }}</a></p>
+        <p><strong>Kategoria:</strong> <a href="?category={{ book.category.id }}">{{ book.category }}</a></p>
+        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        <p><strong>Rok wydania:</strong> {{ book.publication_year }}</p>
+        <p><strong>Wydawnictwo:</strong> {{ book.publisher }}</p>
+      </div>
+
+      {% if book.description %}
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Opis</h5>
+            <p class="card-text">{{ book.description }}</p>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Kopie książki</h5>
+        </div>
+        <div class="card-body">
+          {% if copies %}
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>ID Kopii</th>
+                    <th>Status</th>
+                    <th>Lokacja</th>
+                    <th>Data nabycia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for copy in copies %}
+                    <tr>
+                      <td>#{{ copy.id }}</td>
+                      <td>
+                        {% if copy.status == 'available' %}
+                          <span class="badge bg-success">Dostępna</span>
+                        {% else %}
+                          <span class="badge bg-danger">
+                            {% if copy.status == 'borrowed' %}
+                              Wypożyczona
+                            {% elif copy.status == 'reserved' %}
+                              Zarezerwowana
+                            {% elif copy.status == 'damaged' %}
+                              Uszkodzona
+                            {% elif copy.status == 'lost' %}
+                              Zagubiona
+                            {% else %}
+                              {{ copy.get_status_display }}
+                            {% endif %}
+                          </span>
+                        {% endif %}
+                      </td>
+                      <td>{{ copy.shelf_location }}</td>
+                      <td>{{ copy.acquisition_date|date:"d.m.Y" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted">Brak kopii w bibliotece</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:book_list' %}" class="btn btn-secondary">← Powrót do listy</a>
+  </div>
+</div>
+{% endblock %}

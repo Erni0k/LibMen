@@ -1,0 +1,128 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Zarządzaj Użytkownikami{% endblock %}
+
+{% block content %}
+<style>
+  .table tbody tr td:nth-child(3) .badge,
+  .table tbody tr td:nth-child(5) .badge,
+  .table tbody tr td:nth-child(7) .badge {
+    color: black;
+  }
+</style>
+<div class="container-fluid mt-5">
+  <h1>👥 Zarządzaj Użytkownikami (Admin)</h1>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      {% if users %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Użytkownik</th>
+                <th>Email</th>
+                <th>Rola</th>
+                <th>Pożyczki</th>
+                <th>Niezapłacone kary</th>
+                <th>Dołączył</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+                <tr>
+                  <td>{{ user.get_full_name|default:user.username }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    {% if user.role == 'admin' %}
+                      <span class="badge badge-danger">Admin</span>
+                    {% elif user.role == 'staff' %}
+                      <span class="badge badge-warning">Pracownik</span>
+                    {% else %}
+                      <span class="badge badge-info">Użytkownik</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge badge-primary">{{ user.total_loans }}</span>
+                    <small>({{ user.active_loans }} aktywne)</small>
+                  </td>
+                  <td>
+                    {% if user.total_fines > 0 %}
+                      <span class="badge badge-danger">{{ user.total_fines }}</span>
+                    {% else %}
+                      <span class="badge badge-success">0</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if user.id != request.user.id %}
+                      <div class="btn-group btn-group-sm" role="group">
+                        <form method="post" action="{% url 'library:admin_change_user_role' user.id %}" style="display:inline;">
+                          {% csrf_token %}
+                          <select name="role" class="form-select form-select-sm" style="width: auto; display: inline-block; margin-right: 5px;">
+                            <option value="user" {% if user.role == 'user' %}selected{% endif %}>Użytkownik</option>
+                            <option value="staff" {% if user.role == 'staff' %}selected{% endif %}>Pracownik</option>
+                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                          </select>
+                          <button type="submit" class="btn btn-warning btn-sm">Zmień</button>
+                        </form>
+                        
+                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#passwordModal{{ user.id }}">
+                          🔑 Hasło
+                        </button>
+                        
+                        <form method="post" action="{% url 'library:admin_delete_user' user.id %}" style="display:inline;">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Czy na pewno chcesz usunąć tego użytkownika?')">Usuń</button>
+                        </form>
+                      </div>
+                    {% else %}
+                      <span class="badge badge-secondary">To ty</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- Password Change Modals -->
+          {% for user in users %}
+            {% if user.id != request.user.id %}
+              <div class="modal fade" id="passwordModal{{ user.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Zmień hasło: {{ user.get_full_name|default:user.username }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'library:admin_change_user_password' user.id %}">
+                      {% csrf_token %}
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label">Nowe hasło *</label>
+                          <input type="password" name="new_password" class="form-control" required placeholder="Wpisz nowe hasło">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zmień hasło</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">Brak użytkowników</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:staff_dashboard' %}" class="btn btn-secondary">← Powrót do panelu</a>
+  </div>
+</div>
+{% endblock %}

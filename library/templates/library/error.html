@@ -1,0 +1,14 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Błąd{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <h4 class="alert-heading">⚠️ Błąd!</h4>
+        <p>{{ error }}</p>
+        <hr>
+        <button type="button" class="btn btn-outline-danger" onclick="window.history.back()">Powrót</button>
+    </div>
+</div>
+{% endblock %}

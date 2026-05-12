@@ -1,0 +1,70 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Zarządzaj Rezerwacjami{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1>📌 Zarządzaj Rezerwacjami</h1>
+      
+      <div class="btn-group mb-3" role="group">
+        <a href="?filter=all" class="btn btn-{% if filter == 'all' %}primary{% else %}outline-primary{% endif %}">Wszystkie</a>
+        <a href="?filter=active" class="btn btn-{% if filter == 'active' %}primary{% else %}outline-primary{% endif %}">Aktywne</a>
+        <a href="?filter=fulfilled" class="btn btn-{% if filter == 'fulfilled' %}primary{% else %}outline-primary{% endif %}">Zrealizowane</a>
+        <a href="?filter=cancelled" class="btn btn-{% if filter == 'cancelled' %}primary{% else %}outline-primary{% endif %}">Anulowane</a>
+        <a href="?filter=expired" class="btn btn-{% if filter == 'expired' %}primary{% else %}outline-primary{% endif %}">Wygasłe</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      {% if reservations %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Użytkownik</th>
+                <th>Książka</th>
+                <th>Data rezerwacji</th>
+                <th>Ważna do</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reservation in reservations %}
+                <tr>
+                  <td>{{ reservation.user.get_full_name|default:reservation.user.username }}</td>
+                  <td>{{ reservation.book.title }}</td>
+                  <td>{{ reservation.reservation_date|date:"d.m.Y" }}</td>
+                  <td>{{ reservation.expiry_date|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if reservation.status == 'active' %}
+                      <span class="badge badge-primary">Aktywna</span>
+                    {% elif reservation.status == 'fulfilled' %}
+                      <span class="badge badge-success">Zrealizowana</span>
+                    {% elif reservation.status == 'cancelled' %}
+                      <span class="badge badge-secondary">Anulowana</span>
+                    {% elif reservation.status == 'expired' %}
+                      <span class="badge badge-danger">Wygasła</span>
+                    {% else %}
+                      <span class="badge badge-secondary">{{ reservation.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Brak rezerwacji do wyświetlenia</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:staff_dashboard' %}" class="btn btn-secondary">← Powrót do panelu</a>
+  </div>
+</div>
+{% endblock %}

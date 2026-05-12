@@ -1,0 +1,100 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Moje Wypożyczenia{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Moje Wypożyczenia</h1>
+    
+    <!-- Current Rentals -->
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📚 Aktywne Wypożyczenia</h3>
+        </div>
+        <div class="card-body">
+            {% if current_loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tytuł</th>
+                                <th>Autor</th>
+                                <th>Data wypożyczenia</th>
+                                <th>Termin zwrotu</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in current_loans %}
+                                <tr>
+                                    <td>{{ loan.book_copy.book.title }}</td>
+                                    <td>{{ loan.book_copy.book.author }}</td>
+                                    <td>{{ loan.loan_date|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if loan.due_date|date:"Y-m-d" <= "now"|date:"Y-m-d" %}
+                                            <span class="badge badge-danger">ZALEGŁY: {{ loan.due_date|date:"d.m.Y" }}</span>
+                                        {% else %}
+                                            {{ loan.due_date|date:"d.m.Y" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="post" action="{% url 'library:return_book' loan.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-success" type="submit">Zwróć</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Brak aktywnych wypożyczeń</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Past Rentals -->
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="mb-0">📖 Historia Wypożyczeń</h3>
+        </div>
+        <div class="card-body">
+            {% if past_loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Tytuł</th>
+                                <th>Data zwrotu</th>
+                                <th>Opłata za zwłokę</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in past_loans %}
+                                <tr>
+                                    <td>{{ loan.book_copy.book.title }}</td>
+                                    <td>{{ loan.return_date|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if loan.fine_amount > 0 %}
+                                            <span class="text-danger">{{ loan.fine_amount }} PLN</span>
+                                        {% else %}
+                                            <span class="text-success">Brak</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Brak historii wypożyczeń</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'library:book_list' %}" class="btn btn-primary">Powrót do listy książek</a>
+    </div>
+</div>
+{% endblock %}

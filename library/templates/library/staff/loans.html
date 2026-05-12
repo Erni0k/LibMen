@@ -1,0 +1,87 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Zarządzaj Pożyczkami{% endblock %}
+
+{% block content %}
+<style>
+  .staff-loans-table td.status-cell .badge {
+    color: #000 !important;
+  }
+
+  .staff-loans-table td.fine-cell {
+    color: #dc3545 !important;
+    font-weight: 600;
+  }
+</style>
+<div class="container-fluid mt-5">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1>📖 Zarządzaj Pożyczkami</h1>
+      
+      <div class="btn-group mb-3" role="group">
+        <a href="?filter=all" class="btn btn-{% if filter == 'all' %}primary{% else %}outline-primary{% endif %}">Wszystkie</a>
+        <a href="?filter=active" class="btn btn-{% if filter == 'active' %}primary{% else %}outline-primary{% endif %}">Aktywne</a>
+        <a href="?filter=overdue" class="btn btn-{% if filter == 'overdue' %}danger{% else %}outline-danger{% endif %}">Zaległe</a>
+        <a href="?filter=returned" class="btn btn-{% if filter == 'returned' %}primary{% else %}outline-primary{% endif %}">Zwrócone</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      {% if loans %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover staff-loans-table">
+            <thead class="table-dark">
+              <tr>
+                <th>Użytkownik</th>
+                <th>Książka</th>
+                <th>Data wypożyczenia</th>
+                <th>Termin zwrotu</th>
+                <th>Status</th>
+                <th>Kara</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for loan in loans %}
+                <tr>
+                  <td>{{ loan.user.get_full_name|default:loan.user.username }}</td>
+                  <td>{{ loan.book_copy.book.title }}</td>
+                  <td>{{ loan.loan_date|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if not loan.is_returned and loan.due_date|date:"Y-m-d" <= "now"|date:"Y-m-d" %}
+                      <span class="badge badge-danger">{{ loan.due_date|date:"d.m.Y" }}</span>
+                    {% else %}
+                      {{ loan.due_date|date:"d.m.Y" }}
+                    {% endif %}
+                  </td>
+                  <td class="status-cell">
+                    {% if loan.is_returned %}
+                      <span class="badge badge-success">Zwrócona</span>
+                    {% else %}
+                      <span class="badge badge-warning">Aktywna</span>
+                    {% endif %}
+                  </td>
+                  <td class="fine-cell">
+                    {% if loan.fine_amount > 0 %}
+                      {{ loan.fine_amount }} PLN
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Brak pożyczek do wyświetlenia</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'library:staff_dashboard' %}" class="btn btn-secondary">← Powrót do panelu</a>
+  </div>
+</div>
+{% endblock %}

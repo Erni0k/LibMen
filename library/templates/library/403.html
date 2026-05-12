@@ -1,0 +1,28 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Brak dostępu - Biblioteka{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="display-4 fw-bold">403</h1>
+            <h2 class="mb-4 text-danger">Brak dostępu</h2>
+            
+            <p class="lead mb-4">
+                Nie masz uprawnień do przeglądania tej strony.
+            </p>
+            
+            <p class="mb-4">
+                Jeśli uważasz, że to błąd, skontaktuj się z administratorem biblioteki.
+            </p>
+            
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="{% url 'book_list' %}" class="btn btn-primary btn-lg px-4 gap-3">
+                    ← Powrót do biblioteki
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
