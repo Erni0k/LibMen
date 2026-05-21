@@ -4,13 +4,24 @@
   <h1>Login</h1>
   <form method="post">
     {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="error" style="color: #b00020; margin-bottom: 10px;">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
     <div>
       <label for="id_username">Username:</label>
-      <input type="text" name="username" autofocus required id="id_username">
+      <input type="text" name="username" value="{{ form.username.value|default_if_none:'' }}" autofocus required id="id_username">
+      {% if form.username.errors %}
+        <div class="error" style="color: #b00020;">{{ form.username.errors }}</div>
+      {% endif %}
     </div>
     <div>
       <label for="id_password">Password:</label>
       <input type="password" name="password" required id="id_password">
+      {% if form.password.errors %}
+        <div class="error" style="color: #b00020;">{{ form.password.errors }}</div>
+      {% endif %}
     </div>
     <div style="margin-top:10px">
       <button type="submit">Log in</button>
