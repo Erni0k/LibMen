@@ -34,13 +34,14 @@
           <table class="table table-striped table-hover staff-loans-table">
             <thead class="table-dark">
               <tr>
-                <th>Użytkownik</th>
-                <th>Książka</th>
-                <th>Data wypożyczenia</th>
-                <th>Termin zwrotu</th>
-                <th>Status</th>
-                <th>Kara</th>
-              </tr>
+                  <th>Użytkownik</th>
+                  <th>Książka</th>
+                  <th>Data wypożyczenia</th>
+                  <th>Termin zwrotu</th>
+                  <th>Status</th>
+                  <th>Kara</th>
+                  <th>Akcje</th>
+                </tr>
             </thead>
             <tbody>
               {% for loan in loans %}
@@ -64,7 +65,21 @@
                   </td>
                   <td class="fine-cell">
                     {% if loan.fine_amount > 0 %}
-                      {{ loan.fine_amount }} PLN
+                      {% if loan.is_returned %}
+                        <span class="text-success font-weight-bold">{{ loan.fine_amount }} PLN</span>
+                      {% else %}
+                        <span class="text-danger font-weight-bold">{{ loan.fine_amount }} PLN</span>
+                      {% endif %}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if not loan.is_returned %}
+                      <form method="post" action="{% url 'library:return_book' loan.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-success" type="submit">Zwróć</button>
+                      </form>
                     {% else %}
                       -
                     {% endif %}

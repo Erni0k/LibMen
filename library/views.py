@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
 from django.db.models import Q, Count
+from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 from .models import Book, BookCopy, Loan, Reservation, Fine, User, Author, Category
@@ -60,9 +61,17 @@ def book_list(request):
 	
 	# Get available copies count
 	books = books.annotate(available_count=Count('copies', filter=Q(copies__status='available')))
-	
+
+	# Pagination
+	page_size = 12
+	paginator = Paginator(books, page_size)
+	page_number = request.GET.get('page')
+	books_page = paginator.get_page(page_number)
+
 	context = {
-		'books': books,
+		'books': books_page,
+		'page_obj': books_page,
+		'paginator': paginator,
 		'categories': Category.objects.all(),
 		'search_query': query,
 		'selected_category': category,
@@ -178,32 +187,33 @@ def borrow_book(request, book_id):
 	return redirect('library:my_rentals')
 
 
-@login_required
+@user_passes_test(is_staff)
+@require_http_methods(["POST"])
 def return_book(request, loan_id):
-	"""Return a borrowed book"""
-	loan = get_object_or_404(Loan, id=loan_id, user=request.user, is_returned=False)
-	
+	"""Return a borrowed book (staff/admin only). Staff can mark any loan as returned."""
+	loan = get_object_or_404(Loan, id=loan_id, is_returned=False)
+
 	loan.return_date = timezone.now()
 	loan.is_returned = True
-	
+
 	# Calculate fine if overdue
 	if loan.return_date > loan.due_date:
 		days_overdue = (loan.return_date - loan.due_date).days
 		fine_amount = days_overdue * 2.00  # 2 PLN per day
 		loan.fine_amount = fine_amount
-		
-		# Create Fine record
+
+		# Create Fine record for the borrower
 		Fine.objects.create(
 			loan=loan,
-			user=request.user,
+			user=loan.user,
 			amount=fine_amount
 		)
-	
+
 	loan.save()
 	loan.book_copy.status = 'available'
 	loan.book_copy.save()
-	
-	return redirect('library:my_rentals')
+
+	return redirect('library:staff_loans')
 
 
 @login_required

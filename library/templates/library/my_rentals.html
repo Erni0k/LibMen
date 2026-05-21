@@ -21,7 +21,6 @@
                                 <th>Autor</th>
                                 <th>Data wypożyczenia</th>
                                 <th>Termin zwrotu</th>
-                                <th>Akcje</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,10 +37,12 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <form method="post" action="{% url 'library:return_book' loan.id %}" style="display:inline;">
-                                            {% csrf_token %}
-                                            <button class="btn btn-sm btn-success" type="submit">Zwróć</button>
-                                        </form>
+                                        {% if request.user.is_staff or request.user.role == 'staff' or request.user.role == 'admin' %}
+                                            <form method="post" action="{% url 'library:return_book' loan.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button class="btn btn-sm btn-success" type="submit">Zwróć</button>
+                                            </form>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}

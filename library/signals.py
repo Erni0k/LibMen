@@ -25,10 +25,10 @@ ROLE_PERMISSION_MAP = {
         'library.add_category',
         'library.change_category',
         'library.view_category',
+        'library.return_book',
     },
     UserRole.USER: {
         'library.borrow_book',
-        'library.return_book',
         'library.pay_fine',
         'library.reserve_book',
         'library.cancel_reservation',
