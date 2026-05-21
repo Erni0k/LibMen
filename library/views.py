@@ -438,7 +438,12 @@ def admin_change_user_password(request, user_id):
 @user_passes_test(is_staff)
 def staff_manage_books(request):
 	"""Manage books - add, edit, delete"""
-	books = Book.objects.select_related('author', 'category').all()
+	books = Book.objects.select_related('author', 'category').prefetch_related('copies').annotate(
+		total_copies=Count('copies'),
+		available_copies=Count('copies', filter=Q(copies__status='available')),
+		borrowed_copies=Count('copies', filter=Q(copies__status='borrowed')),
+		reserved_copies=Count('copies', filter=Q(copies__status='reserved')),
+	)
 	authors = Author.objects.all()
 	categories = Category.objects.all()
 	

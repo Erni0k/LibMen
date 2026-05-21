@@ -3,7 +3,13 @@
 {% block title %}Zarządzaj Książkami{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">
+<style>
+  .manage-books-page .badge {
+    color: #000 !important;
+  }
+</style>
+
+<div class="container-fluid mt-5 manage-books-page">
   <h1>📚 Zarządzaj Książkami</h1>
 
   <!-- Add Book Form -->
@@ -120,7 +126,7 @@
                   <td>{{ book.category.name }}</td>
                   <td>{{ book.publication_year }}</td>
                   <td>
-                    <span class="badge badge-success">{{ book.total_copies }}</span>
+                    <span class="badge badge-success">{{ book.total_copies|default:0 }}</span>
                   </td>
                   <td>
                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCopyModal{{ book.id }}">
@@ -173,43 +179,51 @@
       <h5 class="mb-0">Wszystkie Kopie</h5>
     </div>
     <div class="card-body">
-      <div class="row">
-        {% for book in books %}
-          {% for copy in book.copies.all %}
-            <div class="col-md-4 mb-3">
-              <div class="card">
-                <div class="card-body">
-                  <h6 class="card-title">{{ book.title }}</h6>
-                  <p class="card-text text-muted">Kopia #{{ copy.id }}</p>
-                  <p class="card-text">
-                    <small>
-                      <strong>Lokacja:</strong> {{ copy.shelf_location }}<br>
-                      <strong>Status:</strong> 
-                      {% if copy.status == 'available' %}
-                        <span class="badge badge-success">Dostępna</span>
-                      {% elif copy.status == 'borrowed' %}
-                        <span class="badge badge-warning">Wypożyczona</span>
-                      {% elif copy.status == 'reserved' %}
-                        <span class="badge badge-info">Zarezerwowana</span>
-                      {% elif copy.status == 'damaged' %}
-                        <span class="badge badge-danger">Uszkodzona</span>
-                      {% elif copy.status == 'lost' %}
-                        <span class="badge badge-dark">Zagubiona</span>
-                      {% endif %}
-                    </small>
-                  </p>
-                  {% if copy.status == 'available' %}
-                    <form method="post" action="{% url 'library:staff_delete_book_copy' copy.id %}" style="display:inline;">
-                      {% csrf_token %}
-                      <button class="btn btn-sm btn-danger" onclick="return confirm('Usunąć tę kopię?')">Usuń</button>
-                    </form>
-                  {% endif %}
+      {% if books %}
+        <div class="row">
+          {% for book in books %}
+            {% for copy in book.copies.all %}
+              <div class="col-md-4 mb-3">
+                <div class="card">
+                  <div class="card-body">
+                    <h6 class="card-title">{{ book.title }}</h6>
+                    <p class="card-text text-muted">Kopia #{{ copy.id }}</p>
+                    <p class="card-text">
+                      <small>
+                        <strong>Lokacja:</strong> {{ copy.shelf_location }}<br>
+                        <strong>Status:</strong> 
+                        {% if copy.status == 'available' %}
+                          <span class="badge badge-success">Dostępna</span>
+                        {% elif copy.status == 'borrowed' %}
+                          <span class="badge badge-warning">Wypożyczona</span>
+                        {% elif copy.status == 'reserved' %}
+                          <span class="badge badge-info">Zarezerwowana</span>
+                        {% elif copy.status == 'damaged' %}
+                          <span class="badge badge-danger">Uszkodzona</span>
+                        {% elif copy.status == 'lost' %}
+                          <span class="badge badge-dark">Zagubiona</span>
+                        {% endif %}
+                      </small>
+                    </p>
+                    {% if copy.status == 'available' %}
+                      <form method="post" action="{% url 'library:staff_delete_book_copy' copy.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-danger" onclick="return confirm('Usunąć tę kopię?')">Usuń</button>
+                      </form>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
-            </div>
+            {% empty %}
+              <div class="col-12">
+                <p class="text-muted mb-0">Ta książka nie ma jeszcze żadnych kopii.</p>
+              </div>
+            {% endfor %}
           {% endfor %}
-        {% endfor %}
-      </div>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Brak książek w systemie.</p>
+      {% endif %}
     </div>
   </div>
 
